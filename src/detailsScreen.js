@@ -1,21 +1,12 @@
-import { Camera } from "expo-camera";
+import { Camera, CameraType } from "expo-camera";
 import { useState, useEffect } from "react";
 import { Button, StyleSheet, Text, View, Platform } from "react-native";
-import BarcodeMask from "react-native-barcode-mask";
-import { useToast } from "../common/contex/toastProvider"; // Assuming the ToastContext file is in the same directory
+import { useToast } from "./contex/toastProvider";
+import { BarCodeScanner } from "expo-barcode-scanner";
 
-export default function App() {
+export default function App({ navigation, route }) {
   const [hasPermission, setHasPermission] = useState(null);
   const { showToast } = useToast();
-
-  let x = 5;
-  let y = 10;
-  let z = 25;
-  x = y;
-  x = y = z;
-  console.log("X", x);
-  console.log("y", y);
-  console.log("z", z);
 
   useEffect(() => {
     (async () => {
@@ -24,12 +15,18 @@ export default function App() {
     })();
   }, []);
 
+  //   const { callback } = route.params;
+
   const handleBarCodeScanned = ({ type, data }) => {
     console.log("Barcode data:", data);
+    showToast(data, "success", 3000);
+    navigation.navigate("Home", { data: data });
+
+    // navigation.goBack();
   };
 
   if (hasPermission === null) {
-    return <View />;
+    return <Text>Requesting for camera permission</Text>;
   }
 
   if (!hasPermission) {
@@ -52,25 +49,14 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Button
-        onPress={() => showToast("Camera permission not granted")}
-        title=" default Show Toast"
-      />
-      <Button
-        onPress={() => showToast("Camera permission not granted", "success")}
-        title="success Show Toast"
-      />
-      <Button
-        onPress={() => showToast("Camera permission not granted", "error")}
-        title="error Show Toast"
-      />
-      {/* <Camera
+      <Button title="Go Back" onPress={() => navigation.goBack()} />
+      <Camera
         style={styles.camera}
-        type={Camera.Constants.Type.back}
         onBarCodeScanned={handleBarCodeScanned}
-      >
-        <BarcodeMask edgeColor="#F2F2F2" showAnimatedLine />
-      </Camera> */}
+        barCodeScannerSettings={{
+          barCodeTypes: [BarCodeScanner.Constants.BarCodeType.qr],
+        }}
+      />
     </View>
   );
 }
